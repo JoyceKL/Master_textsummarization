@@ -7,6 +7,7 @@ import glob
 from pagerank import TextRank
 
 
+
 # Lọc List bỏ các Tag trừ <s>
 def filter_list_tag(textfiles):
     filter_files = []
@@ -100,7 +101,7 @@ class TextClass:
 
     @staticmethod
     def readfile():
-        list_of_files = glob.glob('DUC_TEXT/*')
+        list_of_files = glob.glob('DUC_TEXT/*')  # Đảm bảo định nghĩa biến list_of_files
         list_of_files.sort()
 
         for file_name in list_of_files:
@@ -121,21 +122,24 @@ class TextClass:
                                      getText.s.string.strip())
                 listSentences.append(sentence)
             print("====================HANDING FILE====================")
-            tr4sh.analyze(listSentences, st.words('english'))
-            res = tr4sh.get_result(listSentences, 1)
+            U = tr4sh.analyze(listSentences, st.words('english'))  # Nhận giá trị U từ phương thức analyze
+            
+            res = tr4sh.get_result(listSentences, U, 1)  # Truyền giá trị 1 vào phương thức get_result
+
+
 
             f.close()
 
             print("====================WRITE FILE " + file_name.replace("DUC_TEXT/", "") + "====================")
             # Tạo thư mục nếu chưa tồn tại
-            output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'DUC_RES', 'WAY_1')
+            output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'DUC_RES', 'WAY')
             os.makedirs(output_dir, exist_ok=True)
-
-
+            
+            
             # Mở tệp tin để ghi
             fs = open(os.path.join(output_dir, os.path.basename(file_name)), 'w')
-
-
+            
+            
             for item in res:
                 fs.write(item.textvalue + '\n')
 

@@ -1,12 +1,9 @@
 import numpy as np
+from scipy.linalg import svd
 
 np.seterr(divide='ignore', invalid='ignore')
 
 from similarity_matrix import build_similarity_matrix
-
-option1 = 20
-option2 = 42
-
 
 class TextRank:
     def __init__(self):
@@ -17,27 +14,25 @@ class TextRank:
         self.sentences = None
         self.pr_vector = None
 
-    def run_page_rank(self, similarity_matrix):
+    def run_page_rank(self, similarity_matrix, damping=0.85, max_iterations=100, epsilon=1e-5):
+        n = similarity_matrix.shape[0]
+        page_rank = np.ones(n) / n  # Khởi tạo vector PageRank
 
-        pr_vector = np.array([1] * len(similarity_matrix))
+        for _ in range(max_iterations):
+            new_page_rank = np.ones(n) * (1 - damping) / n + damping * np.dot(similarity_matrix.T, page_rank)
 
-        previous_pr = 0
+            # Kiểm tra điều kiện dừng
+            if np.linalg.norm(new_page_rank - page_rank, ord=1) <= epsilon:
+                return new_page_rank
 
-        # Lặp
-        for epoch in range(self.steps):
-            pr_vector = (1 - self.damping) + self.damping * np.matmul(similarity_matrix, pr_vector)
-            if abs(previous_pr - sum(pr_vector)) < self.min_diff:
-                break
-            else:
-                previous_pr = sum(pr_vector)
+            page_rank = new_page_rank
 
-        return pr_vector
-
-    def get_result(self, listSentences, option):
+        return page_rank  # Trả về vector PageRank sau khi hội tụ
+    def get_result(self, listSentences, U, option):
         if option == 1:
-            number = option1
+            number = 1
         else:
-            number = option2
+            number = 2
 
         top_sentences = []
         try:
@@ -55,12 +50,20 @@ class TextRank:
 
         except Exception as e:
             pass
+    # def analyze(self, sentences, stop_words):
+    #     text_str = [sentence.textvalue for sentence in sentences]
+    #     similarity_matrix = build_similarity_matrix(text_str, stop_words)  
+    #     self.run_page_rank(similarity_matrix)
+    #     return similarity_matrix
+    # Trong phương thức analyze của lớp TextRank
+    def analyze(self, sentences, stop_words):
+        text_str = [sentence.textvalue for sentence in sentences]
+        similarity_matrix = build_similarity_matrix(text_str, stop_words)  
+        print("Similarity Matrix:")
+        print(similarity_matrix)  # Debug và in ra ma trận tương đồng
+        self.run_page_rank(similarity_matrix)
+        print("PageRank Vector:")
+        print(self.pr_vector)  # Debug và in ra vector PageRank
+        return similarity_matrix
 
-    def analyze(self, listSentences, stop_words=None):
-        text_str = []
-        for value in listSentences:
-            text_str.append(value.textvalue)
 
-        similarity_matrix = build_similarity_matrix(text_str, stop_words)
-
-        self.pr_vector = self.run_page_rank(similarity_matrix)
